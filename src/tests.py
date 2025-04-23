@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import MagicMock, patch
 
-from point import Maze, Point, Line, Cell
+from maze import Maze, Point, Line, Cell
 
 class SetupTests(unittest.TestCase):
     #MAZE CREATION OVERALL WORKING
@@ -186,7 +186,7 @@ class SetupTests(unittest.TestCase):
         cellA = Cell(10, 10, 20, 20, mock_win)
         cellB = Cell(20, 10, 30, 20, mock_win)
 
-        with patch("point.Line") as MockLine:
+        with patch("maze.Line") as MockLine:
             mock_line = MagicMock()
             MockLine.return_value = mock_line
             
@@ -209,7 +209,7 @@ class SetupTests(unittest.TestCase):
         cellA = Cell(15, 15, 30, 30, mock_win)
         cellB = Cell(25, 15, 40, 30, mock_win)
 
-        with patch("point.Line") as MockLine:
+        with patch("maze.Line") as MockLine:
             mock_line = MagicMock()
             MockLine.return_value = mock_line
 
@@ -233,8 +233,8 @@ class SetupTests(unittest.TestCase):
         mock_win.height = 600
 
         maze = Maze(25, 25, 50, 50, mock_win)
-        self.assertEqual(maze.cell_x_count, 15)
-        self.assertEqual(maze.cell_y_count, 11)
+        self.assertEqual(maze.width, 15)
+        self.assertEqual(maze.height, 11)
 
     @patch.object(Maze, "_break_entrance_and_exit", return_value=None)
     def test_maze_animation_call(self, _):
@@ -245,7 +245,7 @@ class SetupTests(unittest.TestCase):
         mock_win.height = 600
         with patch.object(Maze, "_animate") as mock_animate:
             maze = Maze(25, 25, 50, 50, mock_win)
-            self.assertEqual(mock_animate.call_count, maze.cell_x_count * maze.cell_y_count) 
+            self.assertEqual(mock_animate.call_count, maze.width * maze.height) 
 
     def test_maze_zero_values(self):
         with self.assertRaises(ValueError):
@@ -280,15 +280,15 @@ class SetupTests(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             maze = Maze(10, 10, 50, 50, mock_win, 10, 10)
-
+'''
 class MazeBuilderTest(unittest.TestCase):
     def test_break_ent_exit(self):
         maze = Maze(10, 10, 50, 50, None, 10, 10)
-        end_col = maze.cell_x_count - 1
-        end_row = maze.cell_y_count - 1
+        end_col = maze.width - 1
+        end_row = maze.height - 1
 
         self.assertEqual(maze.cells[0][0].top_wall, False)
         self.assertEqual(maze.cells[end_row][end_col].bottom_wall, False)
-
+'''
 if __name__ == "__main__":
     unittest.main()

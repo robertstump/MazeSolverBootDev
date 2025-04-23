@@ -1,5 +1,5 @@
 from maze_window import Window
-from point import Point, Line, Cell, Maze
+from maze import Point, Line, Cell, Maze
 
 def main():
     win = Window(800, 600)

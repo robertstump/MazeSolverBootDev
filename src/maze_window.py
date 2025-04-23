@@ -1,5 +1,6 @@
 from tkinter import Tk, BOTH, Canvas
-from point import Point, Line
+from maze import Point, Line
+
 class Window():
     def __init__(self, width, height):
         self.width = width
