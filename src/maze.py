@@ -34,7 +34,14 @@ class Cell():
         self.y2 = y2
         self.win = win
         self.color = "red"
+        self.up = None
+        self.down = None
+        self.right = None
+        self.left = None
+        self.x_index = None
+        self.y_index = None
         self.visited = False
+        
         if self.win is not None:
             self.bg_color = self.win.canvas.cget("bg")
 
@@ -107,6 +114,7 @@ class Maze():
                 raise ValueError("Window must be wider than cell width")
             if win.height < cell_size_y:
                 raise ValueError("Window must be taller than cell height")
+
         self.x1 = x1
         self.y1 = y1
         self.size_x = cell_size_x
@@ -139,21 +147,40 @@ class Maze():
             self.height = int(inner_height / self.size_y)
         last_x = self.x1
         for i in range(self.width):
-            new_y_list = []
+            column = []
             last_y = self.y1
             for j in range(self.height):
                 tmp = Cell(last_x, last_y, last_x + self.size_x, last_y + self.size_y, self.win)
-                new_y_list.append(tmp)
+                column.append(tmp)
                 last_y += self.size_y
-            self.cells.append(new_y_list)     
+            self.cells.append(column)     
             last_x += self.size_x
-
-        if self.win != None: 
-            for i in range(self.width):
-                for j in range(self.height):
+        
+        for i in range(self.width):
+            for j in range(self.height):
+                self._index_neighbors(i, j)
+                if self.win != None: 
                     self._draw_cells(i, j)
 
-        #self._break_entrance_and_exit()
+    def _index_neighbors(self, x, y):
+        assert len(self.cells[x]) > y, f"Column{x} has only {len(self.cells[x])}rows; tried y={y}"
+
+        if x >= 1:
+            left = self.cells[x - 1][y]
+            self.cells[x][y].left = left
+        if x < len(self.cells) - 1:
+            right = self.cells[x + 1][y]
+            self.cells[x][y].right = right
+        if y >= 1:
+            up = self.cells[x][y - 1]
+            self.cells[x][y].up = up
+        if y < len(self.cells[x]) - 1:
+            down = self.cells[x][y + 1]
+            self.cells[x][y].down = down
+
+        self.cells[x][y].x_index = x
+        self.cells[x][y].y_index = y
+
 
     def _draw_cells(self, i, j):
         self.cells[i][j].draw()
@@ -163,14 +190,6 @@ class Maze():
         self.win.redraw()
         time.sleep(0.05)
 
-    def _break_entrance_and_exit(self):
-        end_row = self.width - 1
-        end_col = self.height - 1
-        self.cells[0][0].del_top()
-        self.cells[end_row][end_col].del_bot()
+    def generate(self, generator_function):
+        generator_function(self)
 
-        if self.win is not None:
-            self._draw_cells(0, 0)
-            self._animate()
-            self._draw_cells(end_row, end_col)
-        

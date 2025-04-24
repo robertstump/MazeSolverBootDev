@@ -236,8 +236,8 @@ class SetupTests(unittest.TestCase):
         self.assertEqual(maze.width, 15)
         self.assertEqual(maze.height, 11)
 
-    @patch.object(Maze, "_break_entrance_and_exit", return_value=None)
-    def test_maze_animation_call(self, _):
+   # @patch.object(Maze, "_break_entrance_and_exit", return_value=None)
+    def test_maze_animation_call(self):
         mock_canvas = MagicMock()
         mock_win = MagicMock()
         mock_win.canvas = mock_canvas
@@ -280,15 +280,144 @@ class SetupTests(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             maze = Maze(10, 10, 50, 50, mock_win, 10, 10)
-'''
-class MazeBuilderTest(unittest.TestCase):
-    def test_break_ent_exit(self):
-        maze = Maze(10, 10, 50, 50, None, 10, 10)
-        end_col = maze.width - 1
-        end_row = maze.height - 1
 
-        self.assertEqual(maze.cells[0][0].top_wall, False)
-        self.assertEqual(maze.cells[end_row][end_col].bottom_wall, False)
-'''
+class QuadLinkCells(unittest.TestCase):
+    def test_3x3(self):
+        cols_rows = 3    
+        maze = Maze(10, 10, 50, 50, None, cols_rows, cols_rows)
+        current = maze.cells[0][0]
+        self.assertEqual(current.left, None)
+        self.assertEqual(current.right, maze.cells[1][0])
+        self.assertEqual(current.up, None)
+        self.assertEqual(current.down, maze.cells[0][1])
+        current = current.right
+        self.assertEqual(current.left, maze.cells[0][0])
+        self.assertEqual(current.right, maze.cells[2][0])
+        self.assertEqual(current.up, None)
+        self.assertEqual(current.down, maze.cells[1][1])
+        current = current.right
+        self.assertEqual(current.left, maze.cells[1][0])
+        self.assertEqual(current.right, None)
+        self.assertEqual(current.up, None)
+        self.assertEqual(current.down, maze.cells[2][1])
+        current = current.down
+        self.assertEqual(current.left, maze.cells[1][1])
+        self.assertEqual(current.right, None)
+        self.assertEqual(current.up, maze.cells[2][0])
+        self.assertEqual(current.down, maze.cells[2][2])
+        current = current.left
+        self.assertEqual(current.left, maze.cells[0][1])
+        self.assertEqual(current.right, maze.cells[2][1])
+        self.assertEqual(current.up, maze.cells[1][0])
+        self.assertEqual(current.down, maze.cells[1][2])
+        current = current.left
+        self.assertEqual(current.left, None)
+        self.assertEqual(current.right, maze.cells[1][1])
+        self.assertEqual(current.up, maze.cells[0][0])
+        self.assertEqual(current.down, maze.cells[0][2])
+        current = current.down
+        self.assertEqual(current.left, None)
+        self.assertEqual(current.right, maze.cells[1][2])
+        self.assertEqual(current.up, maze.cells[0][1])
+        self.assertEqual(current.down, None)
+        current = current.right
+        self.assertEqual(current.left, maze.cells[0][2])
+        self.assertEqual(current.right, maze.cells[2][2])
+        self.assertEqual(current.up, maze.cells[1][1])
+        self.assertEqual(current.down, None)
+        current = current.right
+        self.assertEqual(current.left, maze.cells[1][2])
+        self.assertEqual(current.right, None)
+        self.assertEqual(current.up, maze.cells[2][1])
+        self.assertEqual(current.down, None)
+    
+    def test_xy_index_value(self):
+        cols_rows = 3    
+        maze = Maze(10, 10, 50, 50, None, cols_rows, cols_rows)
+        current = maze.cells[0][0]
+        self.assertEqual(current.x_index, 0)
+        self.assertEqual(current.y_index, 0)
+        current = current.right
+        current = current.down
+        self.assertEqual(current.x_index, 1)
+        self.assertEqual(current.y_index, 1)
+        current = current.right
+        current = current.down
+        self.assertEqual(current.x_index, 2)
+        self.assertEqual(current.y_index, 2)
+
+    def test_grid_integrity(self):
+        cols_rows = 3
+        maze = Maze(10, 10, 50, 50, None, cols_rows, cols_rows)
+        current = maze.cells[0][0]
+        while current.right is not None:
+            if current.left is not None:
+                self.assertEqual(current.left.right, current)
+            current = current.right
+        while current.down is not None:
+            if current.up is not None:
+                self.assertEqual(current.up.down, current)
+            current = current.down
+        while current.left is not None:
+            if current.right is not None:
+                self.assertEqual(current.right.left, current)
+            current = current.left
+        while current.up is not None:
+            if current.down is not None:
+                self.assertEqual(current.down.up, current)
+            current = current.up
+
+        current = maze.cells[1][1]
+        self.assertEqual(current.left.right, current)
+        self.assertEqual(current.right.left, current)
+        self.assertEqual(current.up.down, current)
+        self.assertEqual(current.down.up, current)
+        self.assertEqual(current.left.right.right, current.right)
+        self.assertEqual(current.right.left.left, current.left)
+        self.assertEqual(current.up.down.down, current.down)
+        self.assertEqual(current.down.up.up, current.up)
+
+    def test_vert_sparsity(self):
+        maze = Maze(10, 10, 50, 50, None, 5, 1)
+        current = maze.cells[0][0]
+        self.assertEqual(current.up, None)
+        while current.down is not None:
+            self.assertEqual(current.left, None)
+            self.assertEqual(current.right, None)
+            current = current.down
+        self.assertEqual(current.down, None)
+        self.assertEqual(current, maze.cells[0][4])
+
+    def test_horz_sparsity(self):
+        maze = Maze(10, 10, 50, 50, None, 1, 5)
+        current = maze.cells[0][0]
+        self.assertEqual(current.left, None)
+        while current.right is not None:
+            self.assertEqual(current.up, None)
+            self.assertEqual(current.down, None)
+            current = current.right
+        self.assertEqual(current.right, None)
+        self.assertEqual(current, maze.cells[4][0])
+
+    def test_minimal_maze(self):
+        #a maze so simple it practically solves itself.....
+        maze = Maze(10, 10, 50, 50, None, 1, 1)
+        current = maze.cells[0][0]
+        self.assertIsNone(current.right)
+        self.assertIsNone(current.left)
+        self.assertIsNone(current.up)
+        self.assertIsNone(current.down)
+
+    def test_deep_integrity(self):
+        maze = Maze(10, 10, 50, 50, None, 5, 5)
+        current = maze.cells[0][0]
+        current = current.right
+        current = current.down
+        current = current.down
+        current = current.right
+        current = current.right
+        self.assertEqual(current.left.left.up.up.left.right.down.down.right.right, current)
+
+
 if __name__ == "__main__":
     unittest.main()
