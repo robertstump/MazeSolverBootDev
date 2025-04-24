@@ -1,8 +1,11 @@
+import random
+
 def _break_walls_r(maze, x, y):
     current = maze.cells[x][y]
     current.visited = True
-    to_visit = []
+
     while True:
+        to_visit = []
         if current.left is not None and current.left.visited is False:
             to_visit.append(current.left)
         if current.right is not None and current.right.visited is False:
@@ -15,10 +18,10 @@ def _break_walls_r(maze, x, y):
         if not to_visit: 
             maze._draw_cells(current.x_index, current.y_index)
             break
-        
-        new_direction = maze.seed % len(to_visit) 
+
+        new_direction = maze.rng.randint(0, len(to_visit) - 1)
         next = to_visit[new_direction]
-        del to_visit[new_direction]
+        #del to_visit[new_direction]
 
         if next is current.left:
             current.del_left()
@@ -55,7 +58,22 @@ def randomized_DFS(maze):
 def prim_algorithm(maze):
     pass
 
+def non_recursive_DFS(maz):
+    pass
+
+def prim_algorithm(maze):
+    pass
+
+def kruskal_algorithm(maze):
+    pass
+
+def wilson_algorithm(maze):
+    pass
+
 generators = {
-        "dfs" : randomized_DFS,
-        "prim" : prim_algorithm
+        "dfs_r" : randomized_DFS,
+        "dfs" : non_recursive_DFS,
+        "prim" : prim_algorithm,
+        "kruskal" : kruskal_algorithm,
+        "wilson" : wilson_algorithm
         }

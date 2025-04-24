@@ -104,7 +104,7 @@ class Cell():
             move_line.draw(self.win.canvas, self.color)
 
 class Maze():
-    def __init__(self, x1, y1, cell_size_x, cell_size_y, win=None, rows=None, cols=None, seed=None):
+    def __init__(self, x1, y1, cell_size_x, cell_size_y, generator_function, win=None, rows=None, cols=None, seed=None):
         if cell_size_x < 1 or cell_size_y < 1:
             raise ValueError("Cell size in x and y  must be positive values")
         if isinstance(cell_size_y, float) or isinstance(cell_size_x, float):
@@ -123,11 +123,13 @@ class Maze():
         self.cells = []
         self.width = cols
         self.height = rows
+        self.generator_function = generator_function
         
         if seed is not None:
-            self.seed = random.seed(seed)
+            self.seed = seed
         else:
             self.seed = random.randint(0, 10000)
+        self.rng = random.Random(self.seed)
 
         if self.width is not None and self.win is not None:
             if self.width * self.size_x > win.width:
@@ -162,6 +164,10 @@ class Maze():
                 if self.win != None: 
                     self._draw_cells(i, j)
 
+        if self.generator_function is not None:
+            self.generate(self.generator_function)
+            self._reset_visited()
+
     def _index_neighbors(self, x, y):
         assert len(self.cells[x]) > y, f"Column{x} has only {len(self.cells[x])}rows; tried y={y}"
 
@@ -188,8 +194,12 @@ class Maze():
 
     def _animate(self):
         self.win.redraw()
-        time.sleep(0.05)
+        time.sleep(0.005)
 
     def generate(self, generator_function):
         generator_function(self)
 
+    def _reset_visited(self):
+        for col in self.cells:
+            for cell in col:
+                cell.visited = False

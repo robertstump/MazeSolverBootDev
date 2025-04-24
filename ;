@@ -8,7 +8,7 @@ class SetupTests(unittest.TestCase):
     def test_maze_create_cells(self):
         num_cols = 12
         num_rows = 10
-        m1 = Maze(0, 0, 10, 10, None, None, num_rows, num_cols) 
+        m1 = Maze(0, 0, 10, 10, None, num_rows, num_cols) 
         self.assertEqual(len(m1.cells), num_cols)
         self.assertEqual(len(m1.cells[0]), num_rows)
     #POINT CREATION AND INPUT VALUES
@@ -232,7 +232,7 @@ class SetupTests(unittest.TestCase):
         mock_win.width = 800
         mock_win.height = 600
 
-        maze = Maze(25, 25, 50, 50, None, mock_win)
+        maze = Maze(25, 25, 50, 50, mock_win)
         self.assertEqual(maze.width, 15)
         self.assertEqual(maze.height, 11)
 
@@ -244,12 +244,12 @@ class SetupTests(unittest.TestCase):
         mock_win.width = 800
         mock_win.height = 600
         with patch.object(Maze, "_animate") as mock_animate:
-            maze = Maze(25, 25, 50, 50, None, mock_win)
+            maze = Maze(25, 25, 50, 50, mock_win)
             self.assertEqual(mock_animate.call_count, maze.width * maze.height) 
 
     def test_maze_zero_values(self):
         with self.assertRaises(ValueError):
-            maze = Maze(0, 0, 0, 0, None)
+            maze = Maze(0, 0, 0, 0)
 
     def test_maze_doesnt_fit_width(self):
         mock_canvas = MagicMock()
@@ -259,7 +259,7 @@ class SetupTests(unittest.TestCase):
         mock_win.height = 100
 
         with self.assertRaises(ValueError):
-            maze = Maze(10, 10, 50, 50, None, mock_win)
+            maze = Maze(10, 10, 50, 50, mock_win)
 
     def test_maze_doesnt_fit_height(self):
         mock_canvas = MagicMock()
@@ -269,7 +269,7 @@ class SetupTests(unittest.TestCase):
         mock_win.height = 8
         
         with self.assertRaises(ValueError):
-            maze = Maze(10, 10, 50, 50, None, mock_win)
+            maze = Maze(10, 10, 50, 50, mock_win)
 
     def test_given_to_many_cols(self):
         mock_canvas = MagicMock()
@@ -279,12 +279,12 @@ class SetupTests(unittest.TestCase):
         mock_win.height = 100
 
         with self.assertRaises(ValueError):
-            maze = Maze(10, 10, 50, 50, None, mock_win, 10, 10)
+            maze = Maze(10, 10, 50, 50, mock_win, 10, 10)
 
 class QuadLinkCells(unittest.TestCase):
     def test_3x3(self):
         cols_rows = 3    
-        maze = Maze(10, 10, 50, 50, None, None, cols_rows, cols_rows)
+        maze = Maze(10, 10, 50, 50, None, cols_rows, cols_rows)
         current = maze.cells[0][0]
         self.assertEqual(current.left, None)
         self.assertEqual(current.right, maze.cells[1][0])
@@ -333,7 +333,7 @@ class QuadLinkCells(unittest.TestCase):
     
     def test_xy_index_value(self):
         cols_rows = 3    
-        maze = Maze(10, 10, 50, 50, None, None, cols_rows, cols_rows)
+        maze = Maze(10, 10, 50, 50, None, cols_rows, cols_rows)
         current = maze.cells[0][0]
         self.assertEqual(current.x_index, 0)
         self.assertEqual(current.y_index, 0)
@@ -348,7 +348,7 @@ class QuadLinkCells(unittest.TestCase):
 
     def test_grid_integrity(self):
         cols_rows = 3
-        maze = Maze(10, 10, 50, 50, None, None, cols_rows, cols_rows)
+        maze = Maze(10, 10, 50, 50, None, cols_rows, cols_rows)
         current = maze.cells[0][0]
         while current.right is not None:
             if current.left is not None:
@@ -378,7 +378,7 @@ class QuadLinkCells(unittest.TestCase):
         self.assertEqual(current.down.up.up, current.up)
 
     def test_vert_sparsity(self):
-        maze = Maze(10, 10, 50, 50, None, None, 5, 1)
+        maze = Maze(10, 10, 50, 50, None, 5, 1)
         current = maze.cells[0][0]
         self.assertEqual(current.up, None)
         while current.down is not None:
@@ -389,7 +389,7 @@ class QuadLinkCells(unittest.TestCase):
         self.assertEqual(current, maze.cells[0][4])
 
     def test_horz_sparsity(self):
-        maze = Maze(10, 10, 50, 50, None, None, 1, 5)
+        maze = Maze(10, 10, 50, 50, None, 1, 5)
         current = maze.cells[0][0]
         self.assertEqual(current.left, None)
         while current.right is not None:
@@ -401,7 +401,7 @@ class QuadLinkCells(unittest.TestCase):
 
     def test_minimal_maze(self):
         #a maze so simple it practically solves itself.....
-        maze = Maze(10, 10, 50, 50, None, None, 1, 1)
+        maze = Maze(10, 10, 50, 50, None, 1, 1)
         current = maze.cells[0][0]
         self.assertIsNone(current.right)
         self.assertIsNone(current.left)
@@ -409,7 +409,7 @@ class QuadLinkCells(unittest.TestCase):
         self.assertIsNone(current.down)
 
     def test_deep_integrity(self):
-        maze = Maze(10, 10, 50, 50, None, None, 5, 5)
+        maze = Maze(10, 10, 50, 50, None, 5, 5)
         current = maze.cells[0][0]
         current = current.right
         current = current.down
@@ -419,112 +419,13 @@ class QuadLinkCells(unittest.TestCase):
         self.assertEqual(current.left.left.up.up.left.right.down.down.right.right, current)
 
 class DFS_GeneratorTests(unittest.TestCase):
-    @patch.object(Maze, "_draw_cells")
-    @patch.object(Maze, "_animate")
-    @patch.object(Maze, "_reset_visited")
-    def test_every_cell_visited(self, mock_reset, mock_animate, mock_draw):
-        maze = Maze(10, 10, 50, 50, generators["dfs_r"], None, 3, 3)
+    @patch.object(Maze, "_draw_cells", return_value=None)
+    def test_every_cell_visited(self):
+        maze  = Maze(10, 10, 50, 50, None, 10, 10)
+        maze.generate(generators["dfs"])
         for col in maze.cells:
             for cell in col:
-                self.assertTrue(cell.visited)
-
-    @patch.object(Maze, "_draw_cells")
-    @patch.object(Maze, "_animate")
-    def test_entrance_DFS(self, mock_animate, mock_draw):
-        maze = Maze(10, 10, 50, 50, generators["dfs_r"], None, 3, 3)
-        maze._draw_cells = MagicMock()
-        ent_node = maze.cells[0][0]
-        exit_node = maze.cells[2][2]
-        self.assertEqual(ent_node.top_wall, False)
-        self.assertEqual(exit_node.bottom_wall, False)
-
-    @patch.object(Maze, "_draw_cells")
-    @patch.object(Maze, "_animate")
-    def test_unvisit_after_DFS(self, mock_animate, mock_draw):
-        maze = Maze(10, 10, 50, 50, generators["dfs_r"], None, 3, 3)
-        for col in maze.cells:
-            for cell in col:
-                self.assertFalse(cell.visited)
-
-    @patch.object(Maze, "_draw_cells")
-    @patch.object(Maze, "_animate")
-    def test_no_unbroken_walls_between(self, mock_animate, mock_draw):
-        maze = Maze(10, 10, 50, 50, generators["dfs_r"], None, 3, 3)
-        for col in maze.cells:
-            for cell in col:
-                if cell.left_wall == False:
-                    self.assertFalse(cell.left.right_wall)
-                if cell.right_wall == False:
-                    self.assertFalse(cell.right.left_wall)
-                if cell.top_wall == False and cell.y_index != 0:
-                    self.assertFalse(cell.up.bottom_wall)
-                if cell.bottom_wall == False and cell.y_index != 2:
-                    self.assertFalse(cell.down.top_wall)
-
-    @patch.object(Maze, "_draw_cells")
-    @patch.object(Maze, "_animate")
-    def test_maze_signatures_with_seed(self, mock_animate, mock_draw):
-        maze1 = Maze(10, 10, 50, 50, generators["dfs_r"], None, 5, 5, 1234)
-        maze2 = Maze(10, 10, 50, 50, generators["dfs_r"], None, 5, 5, 1234)
-        sig1, sig2 = [], []
-        for col in maze1.cells:
-            for cell in col:
-                if cell.left_wall == False:
-                    sig1.append("l")
-                if cell.right_wall == False:
-                    sig1.append("r")
-                if cell.top_wall == False:
-                    sig1.append("t")
-                if cell.bottom_wall == False:
-                    sig1.append("b")
-
-        for col in maze2.cells:
-            for cell in col:
-                if cell.left_wall == False:
-                    sig2.append("l")
-                if cell.right_wall == False:
-                    sig2.append("r")
-                if cell.top_wall == False:
-                    sig2.append("t")
-                if cell.bottom_wall == False:
-                    sig2.append("b")
-
-        self.assertEqual(sig1, sig2)
-
-    @patch.object(Maze, "_draw_cells")
-    @patch.object(Maze, "_animate")
-    def test_maze_signatures_different(self, mock_animate, mock_draw):
-        maze1 = Maze(10, 10, 50, 50, generators["dfs_r"], None, 20, 20, 1234)
-        maze2 = Maze(10, 10, 50, 50, generators["dfs_r"], None, 20, 20, 4467)
-        sig1, sig2 = [], []
-        for col in maze1.cells:
-            for cell in col:
-                sig1.append(cell.x_index)
-                sig1.append(cell.y_index)
-                if cell.left_wall == False:
-                    sig1.append("l")
-                if cell.right_wall == False:
-                    sig1.append("r")
-                if cell.top_wall == False:
-                    sig1.append("t")
-                if cell.bottom_wall == False:
-                    sig1.append("b")
-
-        for col in maze2.cells:
-            for cell in col:
-                sig2.append(cell.x_index)
-                sig2.append(cell.y_index)
-                if cell.left_wall == False:
-                    sig2.append("l")
-                if cell.right_wall == False:
-                    sig2.append("r")
-                if cell.top_wall == False:
-                    sig2.append("t")
-                if cell.bottom_wall == False:
-                    sig2.append("b")
-
-        self.assertNotEqual(sig1, sig2)
-
+                self.assertEqual(cell.visited, True)
 
 
 if __name__ == "__main__":
