@@ -40,6 +40,7 @@ class Cell():
         self.left = None
         self.x_index = None
         self.y_index = None
+        self.group_id = None
         self.visited = False
         
         if self.win is not None:
@@ -161,6 +162,7 @@ class Maze():
         for i in range(self.width):
             for j in range(self.height):
                 self._index_neighbors(i, j)
+                self.cells[i][j].group_id = j * self.width + i
                 if self.win != None: 
                     self._draw_cells(i, j)
 

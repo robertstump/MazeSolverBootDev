@@ -1,4 +1,5 @@
 import unittest
+#from parameterized import parameterized
 from unittest.mock import MagicMock, patch
 from generators import generators
 from maze import Maze, Point, Line, Cell
@@ -419,19 +420,40 @@ class QuadLinkCells(unittest.TestCase):
         self.assertEqual(current.left.left.up.up.left.right.down.down.right.right, current)
 
 class DFS_GeneratorTests(unittest.TestCase):
-    @patch.object(Maze, "_draw_cells")
-    @patch.object(Maze, "_animate")
-    @patch.object(Maze, "_reset_visited")
-    def test_every_cell_visited(self, mock_reset, mock_animate, mock_draw):
-        maze = Maze(10, 10, 50, 50, generators["dfs_r"], None, 3, 3)
+    #manual parameterize since calling @patch before init for method captures
+    #and parameterize can't easily wrap the patch decorators..... 
+    #@patch.object(Maze, "_draw_cells")
+    #@patch.object(Maze, "_animate")
+    #@patch.object(Maze, "_reset_visited")
+    #@parameterized.expand([
+    #    ("recursive", "dfs_r"),
+    #    ("stack", "dfs"),
+    #])
+    #def test_every_cell_visited(self, label, gen_key,  mock_reset, mock_animate, mock_draw):
+
+    #THIS FAILS.
+
+    
+    def _test_every_cell_visited(self, gen_key):
+        maze = Maze(10, 10, 50, 50, generators[gen_key], None, 3, 3)
         for col in maze.cells:
             for cell in col:
                 self.assertTrue(cell.visited)
 
     @patch.object(Maze, "_draw_cells")
     @patch.object(Maze, "_animate")
-    def test_entrance_DFS(self, mock_animate, mock_draw):
-        maze = Maze(10, 10, 50, 50, generators["dfs_r"], None, 3, 3)
+    @patch.object(Maze, "_reset_visited")
+    def test_every_cell_visited_recursive(self, *_):
+        self._test_every_cell_visited("dfs_r")
+
+    @patch.object(Maze, "_draw_cells")
+    @patch.object(Maze, "_animate")
+    @patch.object(Maze, "_reset_visited")
+    def test_every_cell_visited_stack(self, *_):
+        self._test_every_cell_visited("dfs")
+
+    def _test_entrance(self, gen_key): 
+        maze = Maze(10, 10, 50, 50, generators[gen_key], None, 3, 3)
         maze._draw_cells = MagicMock()
         ent_node = maze.cells[0][0]
         exit_node = maze.cells[2][2]
@@ -440,16 +462,32 @@ class DFS_GeneratorTests(unittest.TestCase):
 
     @patch.object(Maze, "_draw_cells")
     @patch.object(Maze, "_animate")
-    def test_unvisit_after_DFS(self, mock_animate, mock_draw):
-        maze = Maze(10, 10, 50, 50, generators["dfs_r"], None, 3, 3)
+    def test_entrance_DFS_recursive(self, mock_animate, mock_draw):
+        self._test_entrance("dfs_r")
+
+    @patch.object(Maze, "_draw_cells")
+    @patch.object(Maze, "_animate")
+    def test_entrance_DFS_stack(self, mock_animate, mock_draw):
+        self._test_entrance("dfs_r")
+    
+    def _test_unvisit_after(self, gen_key):
+        maze = Maze(10, 10, 50, 50, generators[gen_key], None, 3, 3)
         for col in maze.cells:
             for cell in col:
                 self.assertFalse(cell.visited)
 
     @patch.object(Maze, "_draw_cells")
     @patch.object(Maze, "_animate")
-    def test_no_unbroken_walls_between(self, mock_animate, mock_draw):
-        maze = Maze(10, 10, 50, 50, generators["dfs_r"], None, 3, 3)
+    def test_unvisit_after_DFS(self, mock_animate, mock_draw):
+        self._test_unvisit_after("dfs_r")
+        
+    @patch.object(Maze, "_draw_cells")
+    @patch.object(Maze, "_animate")
+    def test_unvisit_after_DFS_stack(self, mock_animate, mock_draw):
+        self._test_unvisit_after("dfs") 
+        
+    def _test_no_unbroken_walls_between(self, gen_key):
+        maze = Maze(10, 10, 50, 50, generators[gen_key], None, 3, 3)
         for col in maze.cells:
             for cell in col:
                 if cell.left_wall == False:
@@ -463,9 +501,22 @@ class DFS_GeneratorTests(unittest.TestCase):
 
     @patch.object(Maze, "_draw_cells")
     @patch.object(Maze, "_animate")
-    def test_maze_signatures_with_seed(self, mock_animate, mock_draw):
-        maze1 = Maze(10, 10, 50, 50, generators["dfs_r"], None, 5, 5, 1234)
-        maze2 = Maze(10, 10, 50, 50, generators["dfs_r"], None, 5, 5, 1234)
+    def test_no_unbroken_walls_between_recursive(self, mock_animate, mock_draw):
+        self._test_no_unbroken_walls_between("dfs_r")
+
+    @patch.object(Maze, "_draw_cells")
+    @patch.object(Maze, "_animate")
+    def test_no_unbroken_walls_between(self, mock_animate, mock_draw):
+        self._test_no_unbroken_walls_between("dfs")
+
+    @patch.object(Maze, "_draw_cells")
+    @patch.object(Maze, "_animate")
+    def test_no_unbroken_walls_between_wilson(self, mock_animate, mock_draw):
+        self._test_no_unbroken_walls_between("wilson")
+    
+    def _test_maze_sig_with_seed(self, gen_key):
+        maze1 = Maze(10, 10, 50, 50, generators[gen_key], None, 5, 5, 1234)
+        maze2 = Maze(10, 10, 50, 50, generators[gen_key], None, 5, 5, 1234)
         sig1, sig2 = [], []
         for col in maze1.cells:
             for cell in col:
@@ -493,9 +544,17 @@ class DFS_GeneratorTests(unittest.TestCase):
 
     @patch.object(Maze, "_draw_cells")
     @patch.object(Maze, "_animate")
-    def test_maze_signatures_different(self, mock_animate, mock_draw):
-        maze1 = Maze(10, 10, 50, 50, generators["dfs_r"], None, 20, 20, 1234)
-        maze2 = Maze(10, 10, 50, 50, generators["dfs_r"], None, 20, 20, 4467)
+    def test_maze_signatures_with_seed_recursive(self, mock_animate, mock_draw):
+        self._test_maze_sig_with_seed("dfs_r")
+
+    @patch.object(Maze, "_draw_cells")
+    @patch.object(Maze, "_animate")
+    def test_maze_signatures_with_seed_stack(self, mock_animate, mock_draw):
+        self._test_maze_sig_with_seed("dfs")
+    
+    def _test_maze_sig_different(self, gen_key):
+        maze1 = Maze(10, 10, 50, 50, generators[gen_key], None, 20, 20, 1234)
+        maze2 = Maze(10, 10, 50, 50, generators[gen_key], None, 20, 20, 4467)
         sig1, sig2 = [], []
         for col in maze1.cells:
             for cell in col:
@@ -525,7 +584,15 @@ class DFS_GeneratorTests(unittest.TestCase):
 
         self.assertNotEqual(sig1, sig2)
 
+    @patch.object(Maze, "_draw_cells")
+    @patch.object(Maze, "_animate")
+    def test_maze_signatures_different_recursive(self, mock_animate, mock_draw):
+        self._test_maze_sig_different("dfs_r")
 
+    @patch.object(Maze, "_draw_cells")
+    @patch.object(Maze, "_animate")
+    def test_maze_signatures_different_recursive(self, mock_animate, mock_draw):
+        self._test_maze_sig_different("dfs")
 
 if __name__ == "__main__":
     unittest.main()
