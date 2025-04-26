@@ -1,5 +1,6 @@
 import random
 
+#general helper functions for generators
 def _break_ent_ext(maze, current, exit_node):
     current.del_top()
     exit_node.del_bot()
@@ -36,31 +37,7 @@ def _break_sibling_walls(current, next_node):
         current.del_bot()
         next_node.del_top()
 
-def _break_walls_DFS(maze, current):
-    current.visited = True
-    to_visit = []
-    to_visit.append(current)
-    current.visited = True
-    
-    while to_visit:
-        current = to_visit[-1]
-        neighbors = _find_neighbors(maze, current)
-        #random.shuffle(neighbors)
-        
-        if neighbors:
-            new_direction = maze.rng.randint(0, len(neighbors) - 1)
-            next_node = neighbors[new_direction]
-            to_visit.append(next_node)
-            next_node.visited = True
-
-            _break_sibling_walls(current, next_node)
-            maze._draw_cells(current.x_index, current.y_index)
-            maze._draw_cells(next_node.x_index, next_node.y_index)
-
-        if not neighbors:
-            current = to_visit.pop()
-            maze._draw_cells(current.x_index, current.y_index)
-
+#recursive DFS, spreads like a drop of food coloring in water
 def _break_walls_DFS_r(maze, current):
     current.visited = True
 
@@ -80,19 +57,43 @@ def _break_walls_DFS_r(maze, current):
         maze._draw_cells(next_node.x_index, next_node.y_index)
 
         _break_walls_DFS_r(maze, next_node)
-        
-def non_recursive_DFS(maze):
-    current = maze.cells[0][0]
-    exit_node = maze.cells[maze.width - 1][maze.height - 1]
-    _break_ent_ext(maze, current, exit_node) 
-    _break_walls_DFS(maze, current)
 
 def randomized_DFS(maze):
     current = maze.cells[0][0]
     exit_node = maze.cells[maze.width - 1][maze.height - 1]
     _break_ent_ext(maze, current, exit_node)
     _break_walls_DFS_r(maze, current)
+
+#stack DFS       
+def non_recursive_DFS(maze):
+    current = maze.cells[0][0]
+    exit_node = maze.cells[maze.width - 1][maze.height - 1]
+    _break_ent_ext(maze, current, exit_node) 
+    
+    current.visited = True
+    to_visit = []
+    to_visit.append(current)
+    
+    while to_visit:
+        current = to_visit[-1]
+        neighbors = _find_neighbors(maze, current)
         
+        if neighbors:
+            new_direction = maze.rng.randint(0, len(neighbors) - 1)
+            next_node = neighbors[new_direction]
+            to_visit.append(next_node)
+            next_node.visited = True
+
+            _break_sibling_walls(current, next_node)
+            maze._draw_cells(current.x_index, current.y_index)
+            maze._draw_cells(next_node.x_index, next_node.y_index)
+
+        if not neighbors:
+            current = to_visit.pop()
+            maze._draw_cells(current.x_index, current.y_index)
+       
+#Prim's: Frontier is the edge of the known maze,
+#select random frontier "walls" to be broken until there is no more frontier
 def prim_algorithm(maze):
     current = maze.cells[0][0]
     exit_node = maze.cells[maze.width - 1][maze.height - 1]
@@ -103,7 +104,7 @@ def prim_algorithm(maze):
     for neighbor in neighbors:
         frontier.append((current, neighbor))
     while frontier:
-        random.shuffle(frontier)
+        maze.rng.shuffle(frontier)
 
         next_node = frontier[0]
         del frontier[0]
@@ -116,6 +117,8 @@ def prim_algorithm(maze):
         for neighbor in neighbors:
             frontier.append((next_node[1], neighbor))
 
+#Kruskal: find "wall" nodes of adjacent neighbors, 
+#break them until everyone belongs to the maze
 def krusk_find(cell):
     return cell.group_id
 
@@ -137,7 +140,6 @@ def krusk_wall_finder(maze, current):
 
     return walls
 
-
 def kruskal_algorithm(maze):
     current = maze.cells[0][0]
     exit_node = maze.cells[maze.width - 1][maze.height - 1]
@@ -148,7 +150,7 @@ def kruskal_algorithm(maze):
         for cell in col:
             next_list.extend(krusk_wall_finder(maze, cell))
 
-    random.shuffle(next_list)
+    maze.rng.shuffle(next_list)
     while next_list:
         cell_a = next_list[0][0]
         cell_b = next_list[0][1]
@@ -160,6 +162,7 @@ def kruskal_algorithm(maze):
             maze._draw_cells(cell_b.x_index, cell_b.y_index)
             krusk_union(maze, cell_a, cell_b)
 
+#Wilson, walk, unthred, carve the path
 def _wilson_find_neighbors(maze, current):
     neighbors = []
     if current.left is not None:
@@ -172,11 +175,6 @@ def _wilson_find_neighbors(maze, current):
         neighbors.append(current.down)
     
     return neighbors
-
-def _check_for_loop(path, next_node):
-    if next_node in path: 
-        while path[-1] is not next_node:
-            del path[-1]
 
 def _carve_path(maze, path):
     path_length = len(path)
@@ -224,55 +222,10 @@ def wilson_algorithm(maze):
             walk_set.add(next_node)
             current = next_node
 
-def wilson_algorithm2(maze):
-    start_cell = maze.cells[0][0]
-    start_cell.visited = True
-
-    unvisited = []
-    for col in maze.cells:
-        for cell in col:
-            if not cell.visited:
-                unvisited.append(cell)
-
-    while unvisited:
-        # Pick a random unvisited start point
-        current = maze.rng.choice(unvisited)
-
-        path = [current]
-        visited_in_walk = {current}
-
-        while True:
-            neighbors = _wilson_find_neighbors(maze, current)
-            next_node = maze.rng.choice(neighbors)
-
-            if next_node in visited_in_walk:
-                # Loop detected: erase back to first occurrence
-                while path[-1] != next_node:
-                    visited_in_walk.remove(path.pop())
-                current = next_node
-                continue
-
-            path.append(next_node)
-
-            if next_node.visited:
-                # Hit the maze: carve the path
-                _carve_path(maze, path)
-                for cell in path:
-                    if not cell.visited:
-                        maze._draw_cells(cell.x_index, cell.y_index)
-                        cell.visited = True
-                        if cell in unvisited:
-                            unvisited.remove(cell)
-                break
-            else:
-                visited_in_walk.add(next_node)
-                current = next_node
-
 generators = {
         "dfs_r" : randomized_DFS,
         "dfs" : non_recursive_DFS,
         "prim" : prim_algorithm,
         "kruskal" : kruskal_algorithm,
         "wilson" : wilson_algorithm,
-        "wilsonAI" :wilson_algorithm2
         }

@@ -34,6 +34,8 @@ class Cell():
         self.y2 = y2
         self.win = win
         self.color = "red"
+        self.draw_color = "purple"
+        self.undo_color = "gray"
         self.up = None
         self.down = None
         self.right = None
@@ -100,9 +102,9 @@ class Cell():
         end = Point(int(to_cell.x1 + (to_cell.x2 - to_cell.x1)/2), int(to_cell.y1 - (to_cell.y1 - to_cell.y2)/2))
         move_line = Line(start, end)
         if undo:
-            move_line.draw(self.win.canvas, "gray")
+            move_line.draw(self.win.canvas, self.undo_color)
         else:
-            move_line.draw(self.win.canvas, self.color)
+            move_line.draw(self.win.canvas, self.draw_color)
 
 class Maze():
     def __init__(self, x1, y1, cell_size_x, cell_size_y, generator_function, win=None, rows=None, cols=None, seed=None):
@@ -200,6 +202,9 @@ class Maze():
 
     def generate(self, generator_function):
         generator_function(self)
+
+    def solve(self, solver_function):
+        solver_function(self)
 
     def _reset_visited(self):
         for col in self.cells:

@@ -432,13 +432,34 @@ class DFS_GeneratorTests(unittest.TestCase):
     #def test_every_cell_visited(self, label, gen_key,  mock_reset, mock_animate, mock_draw):
 
     #THIS FAILS.
-
     
+    @patch.object(Maze, "_draw_cells")
+    @patch.object(Maze, "_animate")
+    @patch.object(Maze, "_reset_visited")
+    def test_every_cell_visited_kruskal(self, *_):
+        maze = Maze(10, 10, 50, 50, generators["kruskal"], None, 4, 4)
+        group_id = maze.cells[0][0].group_id
+        for col in maze.cells:
+            for cell in col:
+                self.assertEqual(cell.group_id, group_id)
+
     def _test_every_cell_visited(self, gen_key):
         maze = Maze(10, 10, 50, 50, generators[gen_key], None, 3, 3)
         for col in maze.cells:
             for cell in col:
                 self.assertTrue(cell.visited)
+
+    @patch.object(Maze, "_draw_cells")
+    @patch.object(Maze, "_animate")
+    @patch.object(Maze, "_reset_visited")
+    def test_every_cell_visited_wilson(self, *_):
+        self._test_every_cell_visited("wilson")
+
+    @patch.object(Maze, "_draw_cells")
+    @patch.object(Maze, "_animate")
+    @patch.object(Maze, "_reset_visited")
+    def test_every_cell_visited_prim(self, *_):
+        self._test_every_cell_visited("prim")
 
     @patch.object(Maze, "_draw_cells")
     @patch.object(Maze, "_animate")
@@ -469,7 +490,22 @@ class DFS_GeneratorTests(unittest.TestCase):
     @patch.object(Maze, "_animate")
     def test_entrance_DFS_stack(self, mock_animate, mock_draw):
         self._test_entrance("dfs_r")
+
+    @patch.object(Maze, "_draw_cells")
+    @patch.object(Maze, "_animate")
+    def test_entrance_prim(self, *_):
+        self._test_entrance("prim")
     
+    @patch.object(Maze, "_draw_cells")
+    @patch.object(Maze, "_animate")
+    def test_entrance_kruskal(self, *_):
+        self._test_entrance("kruskal")
+
+    @patch.object(Maze, "_draw_cells")
+    @patch.object(Maze, "_animate")
+    def test_entrance_wilson(self, *_):
+        self._test_entrance("wilson")
+
     def _test_unvisit_after(self, gen_key):
         maze = Maze(10, 10, 50, 50, generators[gen_key], None, 3, 3)
         for col in maze.cells:
@@ -485,7 +521,19 @@ class DFS_GeneratorTests(unittest.TestCase):
     @patch.object(Maze, "_animate")
     def test_unvisit_after_DFS_stack(self, mock_animate, mock_draw):
         self._test_unvisit_after("dfs") 
+
+    @patch.object(Maze, "_draw_cells")
+    @patch.object(Maze, "_animate")
+    def test_unvisit_after_prim(self, *_):
+        self._test_unvisit_after("prim")
         
+    @patch.object(Maze, "_draw_cells")
+    @patch.object(Maze, "_animate")
+    def test_unvisit_after_wilson(self, *_):
+        self._test_unvisit_after("wilson")
+
+    #kruskal doesn't touch cell.visited
+
     def _test_no_unbroken_walls_between(self, gen_key):
         maze = Maze(10, 10, 50, 50, generators[gen_key], None, 3, 3)
         for col in maze.cells:
@@ -508,6 +556,16 @@ class DFS_GeneratorTests(unittest.TestCase):
     @patch.object(Maze, "_animate")
     def test_no_unbroken_walls_between(self, mock_animate, mock_draw):
         self._test_no_unbroken_walls_between("dfs")
+
+    @patch.object(Maze, "_draw_cells")
+    @patch.object(Maze, "_animate")
+    def test_no_unbroken_walls_between_prim(self, *_):
+        self._test_no_unbroken_walls_between("prim")
+
+    @patch.object(Maze, "_draw_cells")
+    @patch.object(Maze, "_animate")
+    def test_no_unbroken_walls_between_kruskal(self, *_):
+        self._test_no_unbroken_walls_between("kruskal")
 
     @patch.object(Maze, "_draw_cells")
     @patch.object(Maze, "_animate")
@@ -551,6 +609,21 @@ class DFS_GeneratorTests(unittest.TestCase):
     @patch.object(Maze, "_animate")
     def test_maze_signatures_with_seed_stack(self, mock_animate, mock_draw):
         self._test_maze_sig_with_seed("dfs")
+
+    @patch.object(Maze, "_draw_cells")
+    @patch.object(Maze, "_animate")
+    def test_maze_sig_with_seed_prim(self, *_):
+        self._test_maze_sig_with_seed("prim")
+
+    @patch.object(Maze, "_draw_cells")
+    @patch.object(Maze, "_animate")
+    def test_maze_sig_with_seed_kruskal(self, *_):
+        self._test_maze_sig_with_seed("kruskal")
+
+    @patch.object(Maze, "_draw_cells")
+    @patch.object(Maze, "_animate")
+    def test_maze_sig_with_seed_wilson(self, *_):
+        self._test_maze_sig_with_seed("wilson")
     
     def _test_maze_sig_different(self, gen_key):
         maze1 = Maze(10, 10, 50, 50, generators[gen_key], None, 20, 20, 1234)
@@ -593,6 +666,21 @@ class DFS_GeneratorTests(unittest.TestCase):
     @patch.object(Maze, "_animate")
     def test_maze_signatures_different_recursive(self, mock_animate, mock_draw):
         self._test_maze_sig_different("dfs")
+
+    @patch.object(Maze, "_draw_cells")
+    @patch.object(Maze, "_animate")
+    def test_maze_sig_differs_prim(self, *_):
+        self._test_maze_sig_different("prim")
+
+    @patch.object(Maze, "_draw_cells")
+    @patch.object(Maze, "_animate")
+    def test_maze_sig_differs_kruskal(self, *_):
+        self._test_maze_sig_different("kruskal")
+
+    @patch.object(Maze, "_draw_cells")
+    @patch.object(Maze, "_animate")
+    def test_maze_sig_differs_wilson(self, *_):
+        self._test_maze_sig_different("wilson")
 
 if __name__ == "__main__":
     unittest.main()

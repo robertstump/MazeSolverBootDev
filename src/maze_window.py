@@ -24,6 +24,9 @@ class Window():
         while(self.running):
             self.redraw()
         print("Window closing...")
+   
+    def clear(self):
+        self.canvas.delete("all")
 
     def draw_line(self, line, fill_color):
         line.draw()
