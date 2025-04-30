@@ -71,8 +71,7 @@ def non_recursive_DFS(maze):
     _break_ent_ext(maze, current, exit_node) 
     
     current.visited = True
-    to_visit = []
-    to_visit.append(current)
+    to_visit = [current]
     
     while to_visit:
         current = to_visit[-1]
@@ -88,7 +87,7 @@ def non_recursive_DFS(maze):
             maze._draw_cells(current.x_index, current.y_index)
             maze._draw_cells(next_node.x_index, next_node.y_index)
 
-        if not neighbors:
+        else:
             current = to_visit.pop()
             maze._draw_cells(current.x_index, current.y_index)
        

@@ -2,6 +2,7 @@ import unittest
 #from parameterized import parameterized
 from unittest.mock import MagicMock, patch
 from generators import generators
+from solvers import solvers
 from maze import Maze, Point, Line, Cell
 
 class SetupTests(unittest.TestCase):
@@ -165,7 +166,7 @@ class SetupTests(unittest.TestCase):
 
         with patch.object(Line, "draw") as mock_draw:
             cellA.draw_move(cellB)
-            mock_draw.assert_called_once_with(mock_canvas, "red")
+            mock_draw.assert_called_once_with(mock_canvas, cellA.draw_color)
 
     def test_draw_move_undo(self):
         mock_canvas = MagicMock()
@@ -419,7 +420,7 @@ class QuadLinkCells(unittest.TestCase):
         current = current.right
         self.assertEqual(current.left.left.up.up.left.right.down.down.right.right, current)
 
-class DFS_GeneratorTests(unittest.TestCase):
+class GeneratorTests(unittest.TestCase):
     #manual parameterize since calling @patch before init for method captures
     #and parameterize can't easily wrap the patch decorators..... 
     #@patch.object(Maze, "_draw_cells")
@@ -681,6 +682,25 @@ class DFS_GeneratorTests(unittest.TestCase):
     @patch.object(Maze, "_animate")
     def test_maze_sig_differs_wilson(self, *_):
         self._test_maze_sig_different("wilson")
+
+class SolverTests(unittest.TestCase):
+    
+    def _test_solver_reaches_end(self, solve_key):
+        maze = Maze(10, 10, 50, 50, generators["wilson"], None, 5, 5)
+        maze.solve(solvers[solve_key])
+        self.assertTrue(maze.cells[maze.width - 1][maze.height - 1].visited)
+
+    @patch.object(Maze, "_draw_cells")
+    @patch.object(Maze, "_animate")
+    @patch.object(Cell, "draw_move")
+    def test_solve_reaches_end_dfs(self, *_):
+        self._test_solver_reaches_end("dfs")
+
+    @patch.object(Maze, "_draw_cells")
+    @patch.object(Maze, "_animate")
+    @patch.object(Cell, "draw_move")
+    def test_solver_reaches_end_dfs_r(self, *_):
+        self._test_solver_reaches_end("dfs_r")
 
 if __name__ == "__main__":
     unittest.main()

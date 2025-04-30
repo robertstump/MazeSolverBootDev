@@ -36,6 +36,7 @@ class Cell():
         self.color = "red"
         self.draw_color = "purple"
         self.undo_color = "gray"
+        self.colorX = "orange"
         self.up = None
         self.down = None
         self.right = None
@@ -44,6 +45,7 @@ class Cell():
         self.y_index = None
         self.group_id = None
         self.visited = False
+        self.parent = None
         
         if self.win is not None:
             self.bg_color = self.win.canvas.cget("bg")
@@ -64,6 +66,9 @@ class Cell():
         self.bot_right = Point(self.x2, self.y2)
         self.bottom_line = Line(self.bot_left, self.bot_right)
 
+    def __repr__(self):
+        return f"Cell({self.x_index}, {self.y_index}), Visited: {self.visited}\nParent: {self.parent}\n"
+    
     def visit_cell(self):
         self.visited = True
 
@@ -97,14 +102,28 @@ class Cell():
         else:
             self.bottom_line.draw(self.win.canvas, self.bg_color)
     
-    def draw_move(self, to_cell, undo=False):
+    def draw_move(self, to_cell, undo=False, color=None):
         start = Point(int(self.x1 + (self.x2 - self.x1)/2), int(self.y1 - (self.y1 - self.y2)/2))
         end = Point(int(to_cell.x1 + (to_cell.x2 - to_cell.x1)/2), int(to_cell.y1 - (to_cell.y1 - to_cell.y2)/2))
         move_line = Line(start, end)
         if undo:
             move_line.draw(self.win.canvas, self.undo_color)
         else:
-            move_line.draw(self.win.canvas, self.draw_color)
+            if color is None:
+                move_line.draw(self.win.canvas, self.draw_color)
+            else:
+                move_line.draw(self.win.canvas, color)
+
+    def draw_X(self):
+        start = Point(self.x1, self.y1)
+        end = Point(self.x2, self.y2)
+        first_cross = Line(start, end)
+        first_cross.draw(self.win.canvas, self.colorX)
+        start = Point(self.x2, self.y1)
+        end = Point(self.x1, self.y2)
+        second_cross = Line(start, end)
+        second_cross.draw(self.win.canvas, self.colorX)
+        
 
 class Maze():
     def __init__(self, x1, y1, cell_size_x, cell_size_y, generator_function, win=None, rows=None, cols=None, seed=None):
