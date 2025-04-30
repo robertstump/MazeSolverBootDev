@@ -10,6 +10,14 @@ def main():
     while testing:
         win = Window(800, 600)
 
+        start9 = time.time()
+        maze = Maze(25, 25, 50, 50, generators["wilson"], win)
+        maze.solve(solvers["bidir"])
+        end9 = time.time()
+        print(f"Wilson time:       {end9 - start9:.6f} seconds")
+        time.sleep(2)
+        win.clear()
+
         start7 = time.time()
         maze = Maze(25, 25, 50, 50, generators["wilson"], win)
         maze.solve(solvers["dead"])

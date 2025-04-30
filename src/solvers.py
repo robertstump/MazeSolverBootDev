@@ -1,4 +1,5 @@
 import queue
+from collections import deque
 
 def _fast_find_neighbors(current):
     return [n for n in (current.left, current.right, current.up, current.down) if n is not None and n.visited == False]
@@ -236,8 +237,95 @@ def recurse_backtrack_solver(maze):
     end_cell = maze.cells[maze.width - 1][maze.height -1]
     r_bt_solver(maze, start_cell, end_cell)
 
+def _find_neighbors_end(current):
+    neighbors = []
+    if current.up and not current.top_wall and not current.up.end_visited:
+        neighbors.append(current.up)
+    if current.right and not current.right_wall and not current.right.end_visited:
+        neighbors.append(current.right)
+    if current.down and not current.bottom_wall and not current.down.end_visited:
+        neighbors.append(current.down)
+    if current.left and not current.left_wall and not current.left.end_visited:
+        neighbors.append(current.left)
+
+    return neighbors
+
+def _path_retrace(maze, start_current, start_cell):
+    while start_current.parent is not None:
+        if start_current.parent is not start_cell:
+            start_current.parent.draw_move(start_current)
+            start_current = start_current.parent
+        else: 
+            start_cell.draw_move(start_current)
+            start_current = start_current.parent
+
+    maze._animate() 
+
+def _path_retrace_end(maze, end_current, end_cell):
+    while end_current.end_parent is not None:
+        if end_current.end_parent is not end_cell:
+            end_current.end_parent.draw_move(end_current)
+            end_current = end_current.end_parent
+        else:
+            end_cell.draw_move(end_current)
+            end_current = end_current.end_parent
+
+    maze._animate()
+
 def bidirectional_solver(maze):
-    pass
+    start_cell = maze.cells[0][0]    
+    end_cell = maze.cells[maze.width - 1][maze.height - 1]
+    start_visit = deque([start_cell])
+    end_visit = deque([end_cell])
+    meeting = None
+
+    while start_visit and end_visit:
+        start_current = start_visit.popleft()
+        end_current = end_visit.popleft()
+        if start_current.parent is not None:
+            start_current.parent.draw_move(start_current, True)
+        if end_current.end_parent is not None:
+            end_current.end_parent.draw_move(end_current, True)
+
+        start_current.visited = True
+        end_current.end_visited = True
+        
+        start_neighbors = _find_neighbors(start_current)
+        if start_neighbors:
+            start_neighbor = start_neighbors[0]
+            
+        for neighbor in start_neighbors:
+            if neighbor.end_visited:
+                meeting = neighbor
+                meeting.parent = start_current
+                start_current = meeting
+                end_current = meeting
+                break
+            else:
+                neighbor.parent = start_current
+        
+        end_neighbors = _find_neighbors_end(end_current)
+        if end_neighbors:
+            end_neighbor = end_neighbors[0]
+
+        for neighbor in end_neighbors:
+            if neighbor.visited:
+                meeting = neighbor
+                meeting.end_parent = end_current
+                end_current = meeting
+                start_current = meeting
+                break
+            else:
+                neighbor.end_parent = end_current
+        
+        if meeting is not None:
+            _path_retrace_end(maze, end_current, end_cell)
+            _path_retrace(maze, start_current, start_cell)
+            return
+        else:
+            start_visit.extend(start_neighbors)
+            end_visit.extend(end_neighbors)
+        maze._animate()
 
 def left_hand_solver(maze):
     current = maze.cells[0][0]

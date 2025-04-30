@@ -45,7 +45,9 @@ class Cell():
         self.y_index = None
         self.group_id = None
         self.visited = False
+        self.end_visited = False
         self.parent = None
+        self.end_parent = None
         
         if self.win is not None:
             self.bg_color = self.win.canvas.cget("bg")
